@@ -1,6 +1,7 @@
 package com.mauro.api.service
 
 import com.mauro.api.model.ExperimentType
+import kotlin.random.Random
 import java.io.ByteArrayOutputStream
 import java.io.DataOutputStream
 import java.util.Base64
@@ -89,7 +90,7 @@ class AudioEngine(private val sampleRate: Int = SAMPLE_RATE) {
 
             // Hihat on every step
             val hhEnv = Math.exp(-stepT / hihatDecay)
-            sample += 0.2 * hhEnv * (Math.random() * 2.0 - 1.0)
+            sample += 0.2 * hhEnv * (rng.nextDouble() * 2.0 - 1.0)
 
             samples[i] = sample.toFloat()
         }
@@ -136,7 +137,7 @@ class AudioEngine(private val sampleRate: Int = SAMPLE_RATE) {
         var prev = 0.0
 
         for (i in samples.indices) {
-            val raw = if (Math.random() > density) 0.0 else Math.random() * 2.0 - 1.0
+            val raw = if (rng.nextDouble() > density) 0.0 else rng.nextDouble() * 2.0 - 1.0
             prev += filterCoeff * (raw - prev) // simple one-pole low-pass
             samples[i] = (0.4 * prev).toFloat()
         }
@@ -153,8 +154,8 @@ class AudioEngine(private val sampleRate: Int = SAMPLE_RATE) {
             val sliceIdx = (t / sliceLen).toInt()
 
             if (sliceIdx != prevSliceIdx && sliceIdx > 0) {
-                if (Math.random() < glitchProb) {
-                    phase = Math.random() * 1000.0
+                if (rng.nextDouble() < glitchProb) {
+                    phase = rng.nextDouble() * 1000.0
                 }
             }
             prevSliceIdx = sliceIdx
@@ -170,7 +171,7 @@ class AudioEngine(private val sampleRate: Int = SAMPLE_RATE) {
         val cellDuration = params.double("cellDuration", 0.1)
         val baseFreq = params.double("baseFreq", 110.0)
         val cellsPerSec = (1.0 / cellDuration).toInt()
-        var cellState = (Math.random() * 256).toInt()
+        var cellState = (rng.nextDouble() * 256).toInt()
         var prevCellIdx = -1
 
         for (i in samples.indices) {
