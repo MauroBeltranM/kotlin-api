@@ -13,5 +13,7 @@ out/
 Thumbs.db
 
 # Spring Boot
-*.jar
 *.log
+
+# Allow gradle wrapper
+!gradle/wrapper/gradle-wrapper.jar
