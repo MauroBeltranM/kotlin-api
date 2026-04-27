@@ -18,6 +18,16 @@ class AudioEngine(private val sampleRate: Int = SAMPLE_RATE) {
         const val SAMPLE_RATE = 44_100
         private const val TAU = 2.0 * Math.PI
         private const val NORMALIZE_TARGET = 0.8f
+
+        // Harmonic ratios
+        private const val FIFTH = 1.5
+        private const val OCTAVE = 2.0
+
+        // Waveform SVG
+        private const val WAVEFORM_WIDTH = 400
+        private const val WAVEFORM_HEIGHT = 100
+        private const val WAVEFORM_POINTS = 200
+        private const val WAVEFORM_COLOR = "#00ff88"
     }
 
     // --- Public API ---
@@ -62,8 +72,8 @@ class AudioEngine(private val sampleRate: Int = SAMPLE_RATE) {
             val lfo = 1.0 + detune * Math.sin(TAU * 0.25 * t)
             samples[i] = (
                 0.30 * Math.sin(TAU * freq * lfo * t) +
-                0.15 * Math.sin(TAU * freq * 1.5 * t) +
-                0.10 * Math.sin(TAU * freq * 2.0 * t)
+                0.15 * Math.sin(TAU * freq * FIFTH * t) +
+                0.10 * Math.sin(TAU * freq * OCTAVE * t)
                 ).toFloat()
         }
     }
@@ -253,15 +263,13 @@ class AudioEngine(private val sampleRate: Int = SAMPLE_RATE) {
     }
 
     private fun buildWaveformSvg(samples: FloatArray): String {
-        val width = 400
-        val height = 100
-        val points = samples.resample(200).mapIndexed { i, s ->
-            val x = (i * width / 200)
-            val y = (height / 2 - s * height * 0.4)
+        val points = samples.resample(WAVEFORM_POINTS).mapIndexed { i, s ->
+            val x = (i * WAVEFORM_WIDTH / WAVEFORM_POINTS)
+            val y = (WAVEFORM_HEIGHT / 2 - s * WAVEFORM_HEIGHT * 0.4)
             "$x,$y"
         }.joinToString(" ")
-        return "<svg xmlns='http://www.w3.org/2000/svg' width='$width' height='$height'>" +
-            "<polyline points='$points' fill='none' stroke='#00ff88' stroke-width='1.5'/></svg>"
+        return "<svg xmlns='http://www.w3.org/2000/svg' width='$WAVEFORM_WIDTH' height='$WAVEFORM_HEIGHT'>" +
+            "<polyline points='$points' fill='none' stroke='$WAVEFORM_COLOR' stroke-width='1.5'/></svg>"
     }
 
     // --- Helpers ---
