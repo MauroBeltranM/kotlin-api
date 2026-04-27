@@ -4,7 +4,6 @@ import com.mauro.api.model.*
 import com.mauro.api.service.ExperimentService
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
-import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.*
 
 @RestController
