@@ -17,9 +17,6 @@ interface ExperimentRepository : JpaRepository<Experiment, Long> {
     @Query("SELECT e FROM Experiment e WHERE LOWER(e.tags) LIKE LOWER(CONCAT('%', :tag, '%'))")
     fun findByTag(@Param("tag") tag: String): List<Experiment>
 
-    @Query("SELECT e FROM Experiment e WHERE e.favorite = true ORDER BY e.id DESC")
-    fun findFavoritesOrderByRecent(): List<Experiment>
-
     @Query("SELECT DISTINCT e.type FROM Experiment e")
     fun findDistinctTypes(): List<ExperimentType>
 
