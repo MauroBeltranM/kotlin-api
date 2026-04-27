@@ -9,6 +9,8 @@ import java.util.*
 
 private fun Int.reverseBytes(): Int = Integer.reverseBytes(this)
 private fun Short.reverseBytes(): Short = java.lang.Short.reverseBytes(this)
+private fun writeLeShort(d: java.io.DataOutputStream, v: Int) = d.writeShort(java.lang.Short.reverseBytes(v.toShort()))
+private fun writeLeInt(d: java.io.DataOutputStream, v: Int) = d.writeInt(Integer.reverseBytes(v))
 
 @Service
 class ExperimentService(private val repository: ExperimentRepository) {
@@ -279,24 +281,23 @@ class ExperimentService(private val repository: ExperimentRepository) {
 
         // RIFF header
         d.writeBytes("RIFF")
-        d.writeInt(fileSize.reverseBytes())
+        writeLeInt(d, fileSize)
         d.writeBytes("WAVE")
         // fmt chunk
         d.writeBytes("fmt ")
-        d.writeInt(16.reverseBytes())
-        d.writeShort(1.toShort().reverseBytes()) // PCM
-        d.writeShort(numChannels.toShort().reverseBytes())
-        d.writeInt(sampleRate.reverseBytes())
-        d.writeInt(byteRate.reverseBytes())
-        d.writeShort(blockAlign.toShort().reverseBytes())
-        d.writeShort(bitsPerSample.toShort().reverseBytes())
+        writeLeInt(d, 16)
+        writeLeShort(d, 1) // PCM
+        writeLeShort(d, numChannels)
+        writeLeInt(d, sampleRate)
+        writeLeInt(d, byteRate)
+        writeLeShort(d, blockAlign)
+        writeLeShort(d, bitsPerSample)
         // data chunk
         d.writeBytes("data")
-        d.writeInt(dataSize.reverseBytes())
+        writeLeInt(d, dataSize)
         for (s in samples) {
             val clamped = s.coerceIn(-1f, 1f)
-            val pcm = (clamped * 32767).toInt().toShort()
-            d.writeShort(pcm.reverseBytes())
+            writeLeShort(d, (clamped * 32767).toInt())
         }
 
         return out.toByteArray()
