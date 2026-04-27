@@ -9,7 +9,7 @@ import java.util.*
 
 private fun Int.reverseBytes(): Int = Integer.reverseBytes(this)
 private fun Short.reverseBytes(): Short = java.lang.Short.reverseBytes(this)
-private fun writeLeShort(d: java.io.DataOutputStream, v: Int) = d.writeShort(java.lang.Short.reverseBytes(v.toShort()))
+private fun writeLeShort(d: java.io.DataOutputStream, v: Int) { val b = v.toShort(); d.write(java.lang.Short.reverseBytes(b).toInt() and 0xFF); d.write((java.lang.Short.reverseBytes(b).toInt() shr 8) and 0xFF) }
 private fun writeLeInt(d: java.io.DataOutputStream, v: Int) = d.writeInt(Integer.reverseBytes(v))
 
 @Service
