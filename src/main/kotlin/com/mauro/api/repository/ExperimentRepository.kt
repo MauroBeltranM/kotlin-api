@@ -14,7 +14,7 @@ interface ExperimentRepository : JpaRepository<Experiment, Long> {
 
     fun findByTitleContainingIgnoreCase(query: String): List<Experiment>
 
-    @Query("SELECT e FROM Experiment e WHERE LOWER(e.tags) LIKE LOWER(CONCAT('%', :tag, '%'))")
+    @Query("SELECT e FROM Experiment e JOIN e.tags t WHERE LOWER(t) = LOWER(:tag)")
     fun findByTag(@Param("tag") tag: String): List<Experiment>
 
     @Query("SELECT DISTINCT e.type FROM Experiment e")

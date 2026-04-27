@@ -33,14 +33,16 @@ data class Experiment(
 
     val favorite: Boolean = false,
 
-    val tags: String? = null,
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "experiment_tags", joinColumns = [JoinColumn(name = "experiment_id")])
+    @Column(name = "tag")
+    val tags: List<String> = emptyList(),
 ) {
     companion object {
         const val DEFAULT_BPM = 120
     }
 
-    // JPA requires a no-arg constructor; Hibernate instantiates fields to their defaults.
-    constructor() : this(title = "")
+    constructor() : this(title = "", tags = emptyList())
 }
 
 // === Enum ===
@@ -63,7 +65,7 @@ data class CreateExperimentRequest(
     val description: String? = null,
     val type: ExperimentType = ExperimentType.DRONE,
     val bpm: Int = Experiment.DEFAULT_BPM,
-    val tags: String? = null,
+    val tags: List<String> = emptyList(),
 )
 
 data class UpdateExperimentRequest(
@@ -75,7 +77,7 @@ data class UpdateExperimentRequest(
     val waveformData: String? = null,
     val audioDataUrl: String? = null,
     val favorite: Boolean? = null,
-    val tags: String? = null,
+    val tags: List<String>? = null,
 )
 
 data class RenderRequest(
