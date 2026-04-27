@@ -7,6 +7,9 @@ import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
 import java.util.*
 
+private fun Int.reverseBytes(): Int = Integer.reverseBytes(this)
+private fun Short.reverseBytes(): Short = java.lang.Short.reverseBytes(this)
+
 @Service
 class ExperimentService(private val repository: ExperimentRepository) {
 
@@ -29,7 +32,7 @@ class ExperimentService(private val repository: ExperimentRepository) {
 
     fun getStats(): Map<String, Any> {
         val total = repository.count()
-        val favorites = repository.countByFavoriteTrue()
+        val favorites = repository.findByFavoriteTrue().size.toLong()
         // Can't easily count by type dynamically in one query, so we do it per type
         val byType = ExperimentType.entries.associate { it.name.lowercase() to repository.countByType(it) }
         return mapOf(
@@ -78,7 +81,6 @@ class ExperimentService(private val repository: ExperimentRepository) {
             exp.copy(
                 id = null,
                 title = "${exp.title} (copy)",
-                createdAt = null,
             )
         )
     }
@@ -94,7 +96,6 @@ class ExperimentService(private val repository: ExperimentRepository) {
     }
 
     // Count favorites
-    private fun countByFavoriteTrue() = repository.findByFavoriteTrue().size.toLong()
 
     /**
      * Renders audio server-side: generates a WAV as base64 data URL.
@@ -190,7 +191,9 @@ class ExperimentService(private val repository: ExperimentRepository) {
                 for (i in 0 until numSamples) {
                     val t = i.toDouble() / sampleRate
                     val sliceIdx = (t / sliceLen).toInt()
-                    if (sliceIdx != (t - 1.0 / sampleRate) / sliceLen).toInt() && sliceIdx > 0) {
+                    val prevT = t - 1.0 / sampleRate
+                    val prevSliceIdx = (prevT / sliceLen).toInt()
+                    if (sliceIdx != prevSliceIdx && sliceIdx > 0) {
                         if (Math.random() < glitchProb) {
                             slicePos = Math.random() * request.duration
                             phase = Math.random() * 1000.0
@@ -241,13 +244,13 @@ class ExperimentService(private val repository: ExperimentRepository) {
         // Generate waveform as SVG path (simplified)
         val waveformPoints = mutableListOf<String>()
         val step = maxOf(1, numSamples / 200)
-        for (i in 0 until 200 step 1) {
+        for (i in 0 until 200) {
             val idx = (i * step).coerceIn(0, numSamples - 1)
             val x = i * 2
             val y = 50 - (samples[idx] * 40)
             waveformPoints.add("$x,$y")
         }
-        val waveformSvg = "<svg xmlns='http://www.w3.org/2000/svg' width='400' height='100'><polyline points='${waveformPoints.join(" ")}' fill='none' stroke='#00ff88' stroke-width='1.5'/></svg>"
+        val waveformSvg = "<svg xmlns='http://www.w3.org/2000/svg' width='400' height='100'><polyline points='${waveformPoints.joinToString(" ")}' fill='none' stroke='#00ff88' stroke-width='1.5'/></svg>"
         val waveformB64 = Base64.getEncoder().encodeToString(waveformSvg.toByteArray())
 
         // Generate WAV
@@ -276,24 +279,24 @@ class ExperimentService(private val repository: ExperimentRepository) {
 
         // RIFF header
         d.writeBytes("RIFF")
-        d.writeInt(java.lang.Integer.reverseBytes(fileSize))
+        d.writeInt(fileSize.reverseBytes())
         d.writeBytes("WAVE")
         // fmt chunk
         d.writeBytes("fmt ")
-        d.writeInt(java.lang.Integer.reverseBytes(16))
-        d.writeShort(java.lang.Short.reverseBytes(1.toShort())) // PCM
-        d.writeShort(java.lang.Short.reverseBytes(numChannels.toShort()))
-        d.writeInt(java.lang.Integer.reverseBytes(sampleRate))
-        d.writeInt(java.lang.Integer.reverseBytes(byteRate))
-        d.writeShort(java.lang.Short.reverseBytes(blockAlign.toShort()))
-        d.writeShort(java.lang.Short.reverseBytes(bitsPerSample.toShort()))
+        d.writeInt(16.reverseBytes())
+        d.writeShort(1.toShort().reverseBytes()) // PCM
+        d.writeShort(numChannels.toShort().reverseBytes())
+        d.writeInt(sampleRate.reverseBytes())
+        d.writeInt(byteRate.reverseBytes())
+        d.writeShort(blockAlign.toShort().reverseBytes())
+        d.writeShort(bitsPerSample.toShort().reverseBytes())
         // data chunk
         d.writeBytes("data")
-        d.writeInt(java.lang.Integer.reverseBytes(dataSize))
+        d.writeInt(dataSize.reverseBytes())
         for (s in samples) {
             val clamped = s.coerceIn(-1f, 1f)
             val pcm = (clamped * 32767).toInt().toShort()
-            d.writeShort(java.lang.Short.reverseBytes(pcm))
+            d.writeShort(pcm.reverseBytes())
         }
 
         return out.toByteArray()
