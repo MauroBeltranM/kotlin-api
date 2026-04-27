@@ -9,13 +9,18 @@ import org.springframework.web.server.ResponseStatusException
 @Service
 class ExperimentService(private val repository: ExperimentRepository) {
 
+    companion object {
+        private const val MSG_NOT_FOUND = "Experiment %d not found"
+        private const val MSG_EMPTY = "No experiments yet. Create one!"
+    }
+
     // === Queries ===
 
     fun findAll(): List<Experiment> = repository.findAll()
 
     fun findById(id: Long): Experiment =
         repository.findById(id).orElseThrow {
-            ResponseStatusException(HttpStatus.NOT_FOUND, "Experiment $id not found")
+            ResponseStatusException(HttpStatus.NOT_FOUND, MSG_NOT_FOUND.format(id))
         }
 
     fun findFavorites(): List<Experiment> = repository.findByFavoriteTrue()
@@ -40,7 +45,7 @@ class ExperimentService(private val repository: ExperimentRepository) {
     }
 
     fun random(): Experiment = repository.findAll().randomOrNull()
-        ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "No experiments yet. Create one!")
+        ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, MSG_EMPTY)
 
     // === Mutations ===
 
@@ -83,7 +88,7 @@ class ExperimentService(private val repository: ExperimentRepository) {
 
     fun delete(id: Long) {
         if (!repository.existsById(id)) {
-            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Experiment $id not found")
+            throw ResponseStatusException(HttpStatus.NOT_FOUND, MSG_NOT_FOUND.format(id))
         }
         repository.deleteById(id)
     }
