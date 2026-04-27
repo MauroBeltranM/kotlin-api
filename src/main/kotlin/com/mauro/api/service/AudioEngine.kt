@@ -79,10 +79,10 @@ class AudioEngine(private val sampleRate: Int = SAMPLE_RATE) {
     }
 
     private fun synthesizeRhythm(samples: FloatArray, ctx: RenderContext, params: Map<String, Any>) {
+        val beatDur = ctx.beatDur
         val stepsPerBeat = 4
         val kickFreq = params.double("kickFreq", 60.0)
         val hihatDecay = params.double("hihatDecay", 0.05)
-        val beatDur = 60.0 / ctx.bpm
 
         for (i in samples.indices) {
             val t = ctx.time(i)
@@ -107,10 +107,10 @@ class AudioEngine(private val sampleRate: Int = SAMPLE_RATE) {
     }
 
     private fun synthesizeMelody(samples: FloatArray, ctx: RenderContext, params: Map<String, Any>) {
+        val beatDur = ctx.beatDur
         val scale = params.doubleList("scale", DEFAULT_MAJOR_SCALE)
         val notesPerBeat = params.double("notesPerBeat", 2.0)
         val baseFreq = params.double("baseFreq", 261.63) // C4
-        val beatDur = 60.0 / ctx.bpm
 
         for (i in samples.indices) {
             val t = ctx.time(i)
@@ -295,6 +295,7 @@ class AudioEngine(private val sampleRate: Int = SAMPLE_RATE) {
     /** Render context to avoid recalculating constants. */
     private data class RenderContext(val bpm: Int, val durationSec: Float, val sampleRate: Int) {
         fun time(sampleIndex: Int): Double = sampleIndex.toDouble() / sampleRate
+        val beatDur: Double get() = 60.0 / bpm
     }
 
     companion object {
