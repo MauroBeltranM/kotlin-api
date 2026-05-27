@@ -28,6 +28,9 @@ class AudioEngine(private val sampleRate: Int = SAMPLE_RATE) {
         private const val WAVEFORM_HEIGHT = 100
         private const val WAVEFORM_POINTS = 200
         private const val WAVEFORM_COLOR = "#00ff88"
+
+        val DEFAULT_MAJOR_SCALE = listOf(0.0, 2.0, 4.0, 5.0, 7.0, 9.0, 11.0)
+        private val rng = Random
     }
 
     // --- Public API ---
@@ -298,9 +301,6 @@ class AudioEngine(private val sampleRate: Int = SAMPLE_RATE) {
         val beatDur: Double get() = 60.0 / bpm
     }
 
-    companion object {
-        val DEFAULT_MAJOR_SCALE = listOf(0.0, 2.0, 4.0, 5.0, 7.0, 9.0, 11.0)
-    }
 }
 
 // --- Little-endian extension for DataOutputStream ---

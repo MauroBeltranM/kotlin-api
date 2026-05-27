@@ -2,11 +2,16 @@ package com.mauro.api.model
 
 import jakarta.persistence.*
 import jakarta.validation.constraints.*
+import org.springframework.data.annotation.CreatedDate
+import org.springframework.data.annotation.LastModifiedDate
+import org.springframework.data.jpa.domain.support.AuditingEntityListener
+import java.time.Instant
 
 // === Entity ===
 
 @Entity
 @Table(name = "experiments")
+@EntityListeners(AuditingEntityListener::class)
 data class Experiment(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,12 +42,19 @@ data class Experiment(
     @CollectionTable(name = "experiment_tags", joinColumns = [JoinColumn(name = "experiment_id")])
     @Column(name = "tag")
     val tags: List<String> = emptyList(),
+
+    @CreatedDate
+    @Column(updatable = false)
+    val createdAt: Instant? = null,
+
+    @LastModifiedDate
+    val updatedAt: Instant? = null,
 ) {
     companion object {
         const val DEFAULT_BPM = 120
     }
 
-    constructor() : this(title = "", tags = emptyList())
+    constructor() : this(title = "", tags = emptyList(), createdAt = null, updatedAt = null)
 }
 
 // === Enum ===
